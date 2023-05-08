@@ -1,29 +1,49 @@
 const readline = require('readline');
 const fs = require('fs');
+const path = require('path');
 const { stdin: input, stdout: output } = require('process');
 
 const filePath = path.join(__dirname, 'text.txt');
 
 fs.writeFile(filePath, '', err => {
   if (err) {
-    throw err
+    throw err;
   }
+});
 
-  console.log('Create file')
+const rl = readline.createInterface({ input, output });
 
-})
+function askUser(question) {
+  return new Promise((res, rej) => {
+    try {
+      rl.question(question, (answer) => {
+        res(answer);
+      });
+    } catch(err) {
+      console.log(`Error: `, err);
+      rej('Error!!!');
+    }
+  })
+}
 
-(async () => {
-  const rl = readline.createInterface({ input, output });
-  try {
-    const answer = await rl.question('What is 4x4 equals? ');
+function addNewLineToFile(text) {
+  fs.appendFile(filePath, '\n ' + text, err => {
+    if (err) {
+      throw err;
+    }
+  })
+}
 
-    const correctOrNot = answer.trim() === '16' ? 'correct!' : 'incorrect. Try again.';
-    console.log(`${answer.trim()} is ${correctOrNot}`);
-  } catch(err) {
-    console.log(`Error: `, err);
-  } finally {
+async function make() {
+  const answer = await askUser('Input text: ');
+  if (answer.trim() === 'exit') {
+    console.log('bye');
     rl.close();
+    process.exit(1);
   }
-  process.exit(1);
-})();
+
+  addNewLineToFile(answer.trim());
+  make();
+}
+
+make()
